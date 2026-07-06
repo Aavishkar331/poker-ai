@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Poker — Monte Carlo AI</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html, body {
+      width: 100%; height: 100%;
+      background: #0d1117;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    canvas.emscripten {
+      display: block;
+      /* Native pixel rendering — no interpolation blur */
+      image-rendering: crisp-edges;
+      image-rendering: pixelated;
+    }
+
+    /* Loading bar shown while the WASM loads */
+    #loading {
+      position: fixed; inset: 0;
+      background: #0d1117;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 20px;
+      color: #e6c87a;
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      z-index: 10;
+      transition: opacity 0.4s;
+    }
+    #loading h1 { font-size: 2rem; letter-spacing: 0.1em; }
+    #loading p  { font-size: 0.9rem; color: #666; }
+    #bar-wrap {
+      width: 260px; height: 6px;
+      background: #1e2a1e;
+      border-radius: 3px;
+      overflow: hidden;
+    }
+    #bar {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, #2e7d32, #66bb6a);
+      border-radius: 3px;
+      transition: width 0.15s;
+    }
+  </style>
+</head>
+<body>
+  <div id="loading">
+    <h1>♠ Poker</h1>
+    <div id="bar-wrap"><div id="bar"></div></div>
+    <p>Loading Monte Carlo engine…</p>
+  </div>
+
+  <canvas class="emscripten" id="canvas"
+          oncontextmenu="event.preventDefault()" tabindex="-1"></canvas>
+
+  <script>
+    var Module = {
+      canvas: document.getElementById('canvas'),
+
+      setStatus: function(text) {
+        var m = text.match(/(\d+(\.\d+)?)\/(\d+)/);
+        if (m) document.getElementById('bar').style.width = (100 * m[1] / m[3]) + '%';
+        if (!text) {
+          // done loading — hide overlay
+          var el = document.getElementById('loading');
+          el.style.opacity = '0';
+          setTimeout(function(){ el.style.display = 'none'; }, 400);
+        }
+      },
+
+      print:    function(t){ console.log(t); },
+      printErr: function(t){ console.warn(t); }
+    };
+
+    // Keep canvas pixel-perfect when window resizes (optional, page reload is fine too)
+    window.addEventListener('resize', function() {
+      // Raylib handles resize via emscripten canvas events; just ensure no CSS distortion
+    });
+  </script>
+  {{{ SCRIPT }}}
+</body>
+</html>
